@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mateos - Asistente de Peluditos Spa</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .chat-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .chat-header p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .bot-message {
+            background-color: #f1f0f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .user-message {
+            background-color: #ff6b6b;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .timestamp {
+            font-size: 10px;
+            color: #999;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+        .quick-reply {
+            background-color: white;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quick-reply:hover {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        .chat-input {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 5px;
+        }
+        .chat-input input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+        }
+        .footer {
+            font-size: 10px;
+            text-align: center;
+            padding: 5px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Mateos</h2>
+            <p>Asistente de Peluditos Spa</p>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                ¡Hola! Soy Mateos, el asistente de <strong>Peluditos Spa</strong>. Estoy aquí para ayudarte con precios, disponibilidad, horarios e información del negocio. ¿En qué te puedo ayudar hoy?
+                <div class="timestamp">Ahora</div>
+            </div>
+        </div>
+        <div class="quick-replies">
+            <div class="quick-reply" onclick="sendMessage('Precios')">Precios</div>
+            <div class="quick-reply" onclick="sendMessage('Disponibilidad')">Disponibilidad</div>
+            <div class="quick-reply" onclick="sendMessage('Horarios')">Horarios</div>
+            <div class="quick-reply" onclick="sendMessage('Info')">Info</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Escribe tu pregunta aquí..." onkeypress="handleKeyPress(event)">
+        </div>
+        <div class="footer">
+            Powered by Peluditos Spa
+        </div>
+    </div>
+
+    <script>
+        function sendMessage(text) {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // User message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-message';
+            userDiv.textContent = text;
+            chatMessages.appendChild(userDiv);
+            
+            // Bot response (mockup)
+            setTimeout(() => {
+                const botDiv = document.createElement('div');
+                botDiv.className = 'message bot-message';
+                botDiv.textContent = "Gracias por tu interés en " + text + ". Un agente humano te contactará pronto o puedes consultar nuestra web.";
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('user-input');
+                if (input.value.trim() !== '') {
+                    sendMessage(input.value);
+                    input.value = '';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
