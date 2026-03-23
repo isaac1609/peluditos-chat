@@ -214,19 +214,11 @@
                 const data = await response.json();
                 console.log('Respuesta de n8n:', data);
                 
-                // Mostrar respuesta de n8n - Manejo flexible de formatos
+                // Mostrar respuesta de n8n - Extractor universal de texto
                 const botDiv = document.createElement('div');
                 botDiv.className = 'message bot-message';
                 
-                let botText = "";
-                if (Array.isArray(data)) {
-                    // Si n8n devuelve un array, tomamos el primer elemento
-                    const firstItem = data[0];
-                    botText = firstItem.output || firstItem.response || firstItem.message || firstItem.text || JSON.stringify(firstItem);
-                } else {
-                    // Si es un objeto directo
-                    botText = data.output || data.response || data.message || data.text || (typeof data === 'string' ? data : JSON.stringify(data));
-                }
+                let botText = extractText(data);
 
                 botDiv.textContent = botText || "Mateos recibió tu mensaje pero no devolvió una respuesta clara.";
                 
@@ -243,6 +235,43 @@
                 chatMessages.appendChild(errorDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
+        }
+
+        // Función para extraer texto de cualquier formato de n8n
+        function extractText(data) {
+            if (!data) return null;
+
+            // Si es un array, buscar en el primer elemento
+            if (Array.isArray(data)) {
+                return extractText(data[0]);
+            }
+
+            // Si es un objeto, buscar en campos comunes
+            if (typeof data === 'object') {
+                const commonFields = ['output', 'response', 'message', 'text', 'data', 'result', 'answer'];
+                for (const field of commonFields) {
+                    if (data[field] && typeof data[field] === 'string') {
+                        return data[field];
+                    }
+                }
+                
+                // Si no hay campos comunes, buscar cualquier string
+                for (const key in data) {
+                    if (typeof data[key] === 'string') {
+                        return data[key];
+                    }
+                }
+
+                // Si es un objeto pero no tiene strings, devolverlo como JSON
+                return JSON.stringify(data);
+            }
+
+            // Si ya es un string
+            if (typeof data === 'string') {
+                return data;
+            }
+
+            return null;
         }
 
         function handleKeyPress(event) {
