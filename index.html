@@ -84,7 +84,7 @@
             font-style: italic;
             font-size: 12px;
             color: var(--text-muted);
-            margin-left: 10px;
+            margin: 0 20px 10px;
             display: none;
         }
         .quick-replies-container {
@@ -204,17 +204,31 @@
                     })
                 });
 
-                const data = await response.json();
-                
                 // Ocultar indicador de escritura
                 typingIndicator.style.display = 'none';
 
-                // Mostrar respuesta de n8n
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Respuesta de n8n:', data);
+                
+                // Mostrar respuesta de n8n - Manejo flexible de formatos
                 const botDiv = document.createElement('div');
                 botDiv.className = 'message bot-message';
                 
-                // Ajustar según el formato de respuesta de tu n8n (usualmente 'output' o 'response')
-                botDiv.textContent = data.output || data.response || data.message || "Lo siento, no pude procesar tu solicitud.";
+                let botText = "";
+                if (Array.isArray(data)) {
+                    // Si n8n devuelve un array, tomamos el primer elemento
+                    const firstItem = data[0];
+                    botText = firstItem.output || firstItem.response || firstItem.message || firstItem.text || JSON.stringify(firstItem);
+                } else {
+                    // Si es un objeto directo
+                    botText = data.output || data.response || data.message || data.text || (typeof data === 'string' ? data : JSON.stringify(data));
+                }
+
+                botDiv.textContent = botText || "Mateos recibió tu mensaje pero no devolvió una respuesta clara.";
                 
                 chatMessages.appendChild(botDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -225,7 +239,7 @@
                 
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message';
-                errorDiv.textContent = "Hubo un error al conectar con el servidor. Por favor, intenta de nuevo más tarde.";
+                errorDiv.textContent = "Hubo un error al conectar con Mateos. Por favor, verifica que el flujo de n8n esté activo y con CORS permitido.";
                 chatMessages.appendChild(errorDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
