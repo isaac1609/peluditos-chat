@@ -80,6 +80,13 @@
             border-top-right-radius: 4px;
             margin-top: 5px;
         }
+        .typing-indicator {
+            font-style: italic;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 10px;
+            display: none;
+        }
         .quick-replies-container {
             padding: 15px;
             border-top: 1px solid var(--border-color);
@@ -103,7 +110,7 @@
             transition: all 0.2s;
             background: white;
         }
-        .quick-reply.active {
+        .quick-reply:hover {
             background-color: var(--primary-color);
             color: white;
         }
@@ -146,12 +153,13 @@
                 ¡Hola! Soy Mateos, el asistente de <strong>Peluditos Spa</strong>. Estoy aquí para ayudarte con precios, disponibilidad, horarios e información del negocio. ¿En qué te puedo ayudar hoy?
             </div>
         </div>
+        <div id="typing" class="typing-indicator">Mateos está escribiendo...</div>
         <div class="quick-replies-container">
             <div class="quick-replies">
-                <div class="quick-reply" onclick="sendMessage('Precios', this)">Precios</div>
-                <div class="quick-reply active" onclick="sendMessage('Disponibilidad', this)">Disponibilidad</div>
-                <div class="quick-reply" onclick="sendMessage('Horarios', this)">Horarios</div>
-                <div class="quick-reply" onclick="sendMessage('Info', this)">Info</div>
+                <div class="quick-reply" onclick="sendMessage('Precios')">Precios</div>
+                <div class="quick-reply" onclick="sendMessage('Disponibilidad')">Disponibilidad</div>
+                <div class="quick-reply" onclick="sendMessage('Horarios')">Horarios</div>
+                <div class="quick-reply" onclick="sendMessage('Info')">Info</div>
             </div>
         </div>
         <div class="chat-input-container">
@@ -165,31 +173,62 @@
     </div>
 
     <script>
-        function sendMessage(text, element) {
-            const chatMessages = document.getElementById('chat-messages');
-            
-            // Update active state for quick replies
-            if (element) {
-                document.querySelectorAll('.quick-reply').forEach(el => el.classList.remove('active'));
-                element.classList.add('active');
-            }
+        const N8N_WEBHOOK_URL = 'https://isaclienan123.app.n8n.cloud/webhook/Mateo';
 
-            // User message
+        async function sendMessage(text) {
+            if (!text.trim()) return;
+            
+            const chatMessages = document.getElementById('chat-messages');
+            const typingIndicator = document.getElementById('typing');
+            
+            // Mostrar mensaje del usuario
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-message';
             userDiv.textContent = text;
             chatMessages.appendChild(userDiv);
-            
-            // Bot response
-            setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Mostrar indicador de escritura
+            typingIndicator.style.display = 'block';
+
+            try {
+                // Enviar al webhook de n8n
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Ocultar indicador de escritura
+                typingIndicator.style.display = 'none';
+
+                // Mostrar respuesta de n8n
                 const botDiv = document.createElement('div');
                 botDiv.className = 'message bot-message';
-                botDiv.textContent = "Gracias por tu interés en " + text + ". Un agente humano te contactará pronto o puedes consultar nuestra web.";
+                
+                // Ajustar según el formato de respuesta de tu n8n (usualmente 'output' o 'response')
+                botDiv.textContent = data.output || data.response || data.message || "Lo siento, no pude procesar tu solicitud.";
+                
                 chatMessages.appendChild(botDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 600);
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            } catch (error) {
+                console.error('Error al conectar con n8n:', error);
+                typingIndicator.style.display = 'none';
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot-message';
+                errorDiv.textContent = "Hubo un error al conectar con el servidor. Por favor, intenta de nuevo más tarde.";
+                chatMessages.appendChild(errorDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
 
         function handleKeyPress(event) {
